@@ -8,6 +8,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -25,16 +26,26 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.component.smarttracker.MainActivity.COMPONENT_BORROWER;
+import static com.component.smarttracker.MainActivity.COMPONENT_FINDER;
+import static com.component.smarttracker.MainActivity.COMPONENT_LENDER;
+
 public class OptionsActivity extends AppCompatActivity {
 
-    public static final String DISPLAY_TITLE = "title";
+    public static final String OPTION_TYPE = "option_type";
     public static final String COMPONENT_DETAIL = "component_detail";
     private static final int RC_PHOTO_PICKER = 5;
+
+    //Option types
+    public static final String LENDER = "lender";
+    public static final String BORROWER = "borrower";
+    public static final String FINDER = "finder";
+    private static final int REQUEST_CODE = 101;
 
     private FirebaseManager mFirebaseManager;
     public ComponentAdapter mComponentAdapter;
     private String mUsername;
-    private boolean isLender;
+    private String componentType;
 
     private RecyclerView mRecyclerView;
     private TextView mNoComponentMessage;
@@ -45,9 +56,9 @@ public class OptionsActivity extends AppCompatActivity {
         Log.i("smart_tracker","OptionActivity:onCreate : ");
 
         super.onCreate(savedInstanceState);
-        this.setTitle(getIntent().getStringExtra(DISPLAY_TITLE));
+        this.setTitle(getTitle(getIntent().getStringExtra(OPTION_TYPE)));
         setContentView(R.layout.activity_component_list);
-        isLender = getIntent().getStringExtra(DISPLAY_TITLE).equalsIgnoreCase("Lend Components");
+        componentType = getIntent().getStringExtra(OPTION_TYPE);
 
         // Initialize references to views
         mRecyclerView = findViewById(R.id.componentListRecyclerView);
@@ -60,7 +71,7 @@ public class OptionsActivity extends AppCompatActivity {
 
         //Initialize firebase
         mFirebaseManager =  FirebaseManager.getManager(this, mComponentAdapter);
-        mFirebaseManager.attachDatabaseReadListeners();
+        mFirebaseManager.attachDatabaseReadListeners(componentType);
 
         ItemClicklistener itemClicklistener = new ItemClicklistener() {
             @Override
@@ -68,9 +79,11 @@ public class OptionsActivity extends AppCompatActivity {
 
                 ComponentTracker componentTracker = mComponentAdapter.getComponentList().get(position);
                 if (!isLongClick) {
-                    Intent intent = new Intent(getApplicationContext(), DetailActivity.class);
+                    Intent intent = new Intent();
+                    intent.setClass(OptionsActivity.this, DetailActivity.class);
                     intent.putExtra(COMPONENT_DETAIL,componentTracker);
-                    startActivity(intent);
+                    intent.putExtra(OPTION_TYPE, componentType);
+                    startActivityForResult(intent, REQUEST_CODE);
                 }else {
 
                     Toast.makeText(getApplication(), "#" + position + " - " + componentTracker + " (long click)", Toast.LENGTH_SHORT).show();
@@ -102,7 +115,7 @@ public class OptionsActivity extends AppCompatActivity {
     private void promptAlert() {
 
         final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle(isLender? "Enter lender details":"Enter borrower details");
+        alert.setTitle(componentType == LENDER? "Enter lender details":"Enter borrower details");
 
         final LinearLayout layout = (LinearLayout) getLayoutInflater().inflate(R.layout.dialogue_box, null);
         alert.setView(layout);
@@ -122,7 +135,7 @@ public class OptionsActivity extends AppCompatActivity {
 //                    }
 //                });
 
-                ComponentTracker tracker = new ComponentTracker(personName.getText().toString(),teamName.getText().toString(), isLender?ComponentTracker.LENDER: ComponentTracker.BORROWER);
+                ComponentTracker tracker = new ComponentTracker(personName.getText().toString(),teamName.getText().toString(), componentType);
                 tracker.setComponentName(componentName.getText().toString());
 
                 mFirebaseManager.sendMessage(tracker);
@@ -150,7 +163,7 @@ public class OptionsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mFirebaseManager.attachDatabaseReadListeners();
+        mFirebaseManager.attachDatabaseReadListeners(componentType);
     }
 
     @Override
@@ -163,7 +176,31 @@ public class OptionsActivity extends AppCompatActivity {
     public boolean isOnline() {
         ConnectivityManager cm = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
+
         return netInfo != null && netInfo.isConnected();
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
+            componentType = data.getStringExtra(OPTION_TYPE);
+        }
+    }
+
+    private String getTitle(String optionType) {
+        switch (optionType){
+            case FINDER :
+                return COMPONENT_FINDER;
+            case  BORROWER :
+                return COMPONENT_BORROWER;
+            case LENDER :
+                return COMPONENT_LENDER;
+
+                default:
+                    return FINDER;
+        }
+    }
+
 
 }

@@ -5,15 +5,15 @@ import android.os.Parcelable;
 
 import java.util.Objects;
 
+import static com.component.smarttracker.OptionsActivity.BORROWER;
+import static com.component.smarttracker.OptionsActivity.LENDER;
+
 public class ComponentTracker implements Parcelable {
     private String componentKey, componentName;
     private String ownerID;
     private String lender, lenderTeam, borrower, borrowerTeam;
     private String photoUrl;
     private String type;
-
-    public static final String LENDER = "lender";
-    public static final String BORROWER = "borrower";
 
     public ComponentTracker(){
     }
@@ -38,7 +38,7 @@ public class ComponentTracker implements Parcelable {
         if (LENDER.equalsIgnoreCase(componetType)) {
             this.lender = member;
             this.lenderTeam = team;
-        }else{
+        }else if (BORROWER.equalsIgnoreCase(componetType)){
             this.borrower = member;
             this.borrowerTeam = team;
         }

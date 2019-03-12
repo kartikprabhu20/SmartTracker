@@ -13,6 +13,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import static com.component.smarttracker.OptionsActivity.BORROWER;
+import static com.component.smarttracker.OptionsActivity.FINDER;
+import static com.component.smarttracker.OptionsActivity.LENDER;
+
 public class FirebaseManager {
 
     private static final String TAG = "smart_tracker";
@@ -49,16 +53,18 @@ public class FirebaseManager {
         mMessageDatabaseReference.child(ComponentTracker.getComponentKey()).child("text").setValue(newText);
     }
 
-    public void attachDatabaseReadListeners() {
+    public void attachDatabaseReadListeners(final String componentType) {
 
         if (mChildEventListener == null) {
             mChildEventListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                    ComponentTracker com = dataSnapshot.getValue(ComponentTracker.class);
-                    com.setComponentKey(dataSnapshot.getKey());
-                    Log.i("smart_tracker","addComponent key:"+ com.getComponentKey());
-                    mComponentAdapter.addComponent(com);
+                    ComponentTracker comp = dataSnapshot.getValue(ComponentTracker.class);
+                    comp.setComponentKey(dataSnapshot.getKey());
+                    Log.i("smart_tracker","addComponent key:"+ comp.getComponentKey());
+
+                    if (FINDER.equalsIgnoreCase(componentType) || doesComponentTypeExists(componentType,comp))
+                        mComponentAdapter.addComponent(comp);
                 }
 
                 @Override
@@ -66,7 +72,8 @@ public class FirebaseManager {
                     ComponentTracker comp = dataSnapshot.getValue(ComponentTracker.class);
                     comp.setComponentKey(dataSnapshot.getKey());
                     Log.i("smart_tracker","updateComponent key:"+ comp.getComponentKey());
-                    mComponentAdapter.updateComponent(comp);
+
+                        mComponentAdapter.updateComponent(comp);
                 }
 
                 @Override
@@ -92,6 +99,13 @@ public class FirebaseManager {
         }
     }
 
+    private boolean doesComponentTypeExists(String componentType, ComponentTracker comp) {
+        if ((LENDER.equalsIgnoreCase(componentType) && null != comp.getLender() && !comp.getLender().isEmpty())
+                || BORROWER.equalsIgnoreCase(componentType) && null != comp.getBorrower() && !comp.getBorrower().isEmpty())
+            return true;
+        return false;
+    }
+
     public void detachDatabaseReadListeners() {
         if (mChildEventListener != null) {
             mMessageDatabaseReference.removeEventListener(mChildEventListener);
@@ -102,4 +116,5 @@ public class FirebaseManager {
     public StorageReference getStorageReference(String segment) {
         return mStorageReference.child(segment);
     }
+
 }

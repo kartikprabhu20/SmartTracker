@@ -19,7 +19,10 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Arrays;
 
-import static com.component.smarttracker.OptionsActivity.DISPLAY_TITLE;
+import static com.component.smarttracker.OptionsActivity.BORROWER;
+import static com.component.smarttracker.OptionsActivity.FINDER;
+import static com.component.smarttracker.OptionsActivity.LENDER;
+import static com.component.smarttracker.OptionsActivity.OPTION_TYPE;
 
  public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -27,6 +30,9 @@ import static com.component.smarttracker.OptionsActivity.DISPLAY_TITLE;
      private static final int RC_SIGN_IN = 1;
      private static final String SMART_TRACKER = "smart_tracker";
      private static final String USER_UID = "smart_user_uid";
+     public static final String COMPONENT_FINDER = "Component Finder";
+     public static final String COMPONENT_LENDER = "Lend Components";
+     public static final String COMPONENT_BORROWER = "Borrow Components";
 
      private Button buttonFind, buttonLend, buttonBorrow;
 
@@ -160,13 +166,13 @@ import static com.component.smarttracker.OptionsActivity.DISPLAY_TITLE;
 
          switch (v.getId()){
              case R.id.button_find:
-                 intent.putExtra(DISPLAY_TITLE,"Component Finder");
+                 intent.putExtra(OPTION_TYPE,FINDER);
                  break;
              case R.id.button_lend:
-                 intent.putExtra(DISPLAY_TITLE,"Lend Components");
+                 intent.putExtra(OPTION_TYPE,LENDER);
                  break;
              case R.id.button_borrow:
-                 intent.putExtra(DISPLAY_TITLE,"Borrow Components");
+                 intent.putExtra(OPTION_TYPE,BORROWER);
                  break;
          }
          startActivity(intent);
