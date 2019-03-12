@@ -1,17 +1,21 @@
 package com.component.smarttracker;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.Objects;
 
+import static com.component.smarttracker.MainActivity.SMART_TRACKER;
+import static com.component.smarttracker.MainActivity.USER_EMAIL;
+import static com.component.smarttracker.MainActivity.USER_UID;
 import static com.component.smarttracker.OptionsActivity.BORROWER;
 import static com.component.smarttracker.OptionsActivity.LENDER;
 
 public class ComponentTracker implements Parcelable {
     private String componentKey, componentName;
     private String ownerID;
-    private String lender, lenderTeam, borrower, borrowerTeam;
+    private String lender, lenderTeam,lenderEmail, borrower, borrowerTeam, borrowerEmail;
     private String photoUrl;
     private String type;
 
@@ -33,15 +37,19 @@ public class ComponentTracker implements Parcelable {
                 '}';
     }
 
-    public ComponentTracker(String member, String team, String componetType) {
+    public ComponentTracker(Context context,String owner, String ownerTeam, String componentType) {
 
-        if (LENDER.equalsIgnoreCase(componetType)) {
-            this.lender = member;
-            this.lenderTeam = team;
-        }else if (BORROWER.equalsIgnoreCase(componetType)){
-            this.borrower = member;
-            this.borrowerTeam = team;
+        this.ownerID = context.getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_UID, "UNKNOWN");
+        if (LENDER.equalsIgnoreCase(componentType)) {
+            this.lender = owner;
+            this.lenderTeam = ownerTeam;
+            this.lenderEmail = context.getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_EMAIL, "UNKNOWN");
+        }else if (BORROWER.equalsIgnoreCase(componentType)){
+            this.borrower = owner;
+            this.borrowerTeam = ownerTeam;
+            this.borrowerEmail = context.getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_EMAIL, "UNKNOWN");
         }
+
     }
 
     protected ComponentTracker(Parcel in) {
@@ -50,8 +58,10 @@ public class ComponentTracker implements Parcelable {
         ownerID = in.readString();
         lender = in.readString();
         lenderTeam = in.readString();
+        lenderEmail = in.readString();
         borrower = in.readString();
         borrowerTeam = in.readString();
+        borrowerEmail = in.readString();
         photoUrl = in.readString();
         type = in.readString();
     }
@@ -163,9 +173,27 @@ public class ComponentTracker implements Parcelable {
         dest.writeString(ownerID);
         dest.writeString(lender);
         dest.writeString(lenderTeam);
+        dest.writeString(lenderEmail);
         dest.writeString(borrower);
         dest.writeString(borrowerTeam);
+        dest.writeString(borrowerEmail);
         dest.writeString(photoUrl);
         dest.writeString(type);
+    }
+
+    public String getLenderEmail() {
+        return lenderEmail;
+    }
+
+    public void setLenderEmail(String lenderEmail) {
+        this.lenderEmail = lenderEmail;
+    }
+
+    public String getBorrowerEmail() {
+        return borrowerEmail;
+    }
+
+    public void setBorrowerEmail(String borrowerEmail) {
+        this.borrowerEmail = borrowerEmail;
     }
 }

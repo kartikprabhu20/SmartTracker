@@ -28,10 +28,11 @@ import static com.component.smarttracker.OptionsActivity.OPTION_TYPE;
 
      private static final String ANONYMOUS = "anonymous";
      private static final int RC_SIGN_IN = 1;
-     private static final String SMART_TRACKER = "smart_tracker";
-     private static final String USER_UID = "smart_user_uid";
+     public static final String SMART_TRACKER = "smart_tracker";
+     public static final String USER_UID = "smart_user_uid";
+     public static final String USER_EMAIL = "smart_user_email";
+
      public static final String COMPONENT_FINDER = "Component Finder";
-     public static final String COMPONENT_LENDER = "Lend Components";
      public static final String COMPONENT_BORROWER = "Borrow Components";
 
      private Button buttonFind, buttonLend, buttonBorrow;
@@ -81,6 +82,7 @@ import static com.component.smarttracker.OptionsActivity.OPTION_TYPE;
 
                      SharedPreferences.Editor editor = sharedpreferences.edit();
                      editor.putString(USER_UID, firebaseUser.getUid());
+                     editor.putString(USER_EMAIL, firebaseUser.getEmail());
                      editor.commit();
 
                      onSignedInInit(firebaseUser.getDisplayName());

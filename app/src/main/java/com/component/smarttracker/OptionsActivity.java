@@ -14,9 +14,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -28,12 +33,12 @@ import java.util.List;
 
 import static com.component.smarttracker.MainActivity.COMPONENT_BORROWER;
 import static com.component.smarttracker.MainActivity.COMPONENT_FINDER;
-import static com.component.smarttracker.MainActivity.COMPONENT_LENDER;
 
 public class OptionsActivity extends AppCompatActivity {
 
     public static final String OPTION_TYPE = "option_type";
     public static final String COMPONENT_DETAIL = "component_detail";
+    public static final String COMPONENT_LENDER = "Lend Components";
     private static final int RC_PHOTO_PICKER = 5;
 
     //Option types
@@ -92,12 +97,16 @@ public class OptionsActivity extends AppCompatActivity {
             }
         };
         mComponentAdapter.attachListener(itemClicklistener);
-
-        if (mComponentAdapter.getComponentList().isEmpty()){
-            mNoComponentMessage.setVisibility(View.VISIBLE);
-        }else{
-            mNoComponentMessage.setVisibility(View.GONE);
-        }
+        mComponentAdapter.attachComponentListListeener(new ComponentAdapter.ComponentListListener() {
+            @Override
+            public void checkComponentList() {
+                if (mComponentAdapter.getComponentList().isEmpty()){
+                    mNoComponentMessage.setVisibility(View.VISIBLE);
+                }else{
+                    mNoComponentMessage.setVisibility(View.GONE);
+                }
+            }
+        });
 
         FloatingActionButton fab = findViewById(R.id.fab_add_component);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -107,15 +116,40 @@ public class OptionsActivity extends AppCompatActivity {
                 promptAlert();
             }
         });
+    }
 
-        Log.i("Smart_tracker", "list:"+ mComponentAdapter.getComponentList().size() );
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (FINDER.equalsIgnoreCase(componentType)) {
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.menu_search, menu);
 
+            MenuItem searchItem = menu.findItem(R.id.action_search);
+            SearchView searchView = (SearchView) searchItem.getActionView();
+
+            searchView.setImeOptions(EditorInfo.IME_ACTION_DONE);
+
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    mComponentAdapter.getFilter().filter(newText);
+                    return false;
+                }
+            });
+            return true;
+        }
+        return false;
     }
 
     private void promptAlert() {
 
         final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle(componentType == LENDER? "Enter lender details":"Enter borrower details");
+        alert.setTitle(componentType.equalsIgnoreCase(LENDER)? "Enter lender details":"Enter borrower details");
 
         final LinearLayout layout = (LinearLayout) getLayoutInflater().inflate(R.layout.dialogue_box, null);
         alert.setView(layout);
@@ -135,7 +169,7 @@ public class OptionsActivity extends AppCompatActivity {
 //                    }
 //                });
 
-                ComponentTracker tracker = new ComponentTracker(personName.getText().toString(),teamName.getText().toString(), componentType);
+                ComponentTracker tracker = new ComponentTracker(getApplicationContext(),personName.getText().toString(),teamName.getText().toString(), componentType);
                 tracker.setComponentName(componentName.getText().toString());
 
                 mFirebaseManager.sendMessage(tracker);

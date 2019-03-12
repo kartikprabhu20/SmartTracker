@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -15,18 +17,19 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ComponentAdapter extends RecyclerView.Adapter<ComponentAdapter.MyViewHolder>{
+public class ComponentAdapter extends RecyclerView.Adapter<ComponentAdapter.MyViewHolder> implements Filterable {
 
     private final Context mContext;
-    private List<ComponentTracker> componentList = new ArrayList<>();
+    private List<ComponentTracker> filteredList = new ArrayList<>();
+    private List<ComponentTracker> componentFullList = new ArrayList<>();
     private ItemClicklistener itemClicklistener;
-
+    private ComponentListListener componentListListener;
 
     public ComponentAdapter(Context context, List<ComponentTracker> componentList) {
         mContext = context;
-        componentList.addAll(componentList);
+        filteredList.addAll(componentList);
+        componentFullList.addAll(componentList);
         Log.i("Smart_tracker", "Constructor");
-
     }
 
     @NonNull
@@ -46,7 +49,7 @@ public class ComponentAdapter extends RecyclerView.Adapter<ComponentAdapter.MyVi
 
         if (holder != null) {
 
-            ComponentTracker component = componentList.get(position);
+            ComponentTracker component = filteredList.get(position);
             Log.i("Smart_tracker", "onBindViewHolder message:" + component.toString());
 
             boolean isPhoto = component.getPhotoUrl() != null;
@@ -62,50 +65,59 @@ public class ComponentAdapter extends RecyclerView.Adapter<ComponentAdapter.MyVi
 
     @Override
     public int getItemCount() {
-        Log.i("Smart_tracker", "getItemCount="+ componentList.size());
+        Log.i("Smart_tracker", "getItemCount="+ filteredList.size());
 
-        if (componentList == null)
+        if (filteredList == null)
             return 0;
 
-        return componentList.size();
+        return filteredList.size();
     }
 
     public List<ComponentTracker> getComponentList() {
-        return componentList;
+        return filteredList;
     }
 
     public void addComponent(ComponentTracker componentTracker) {
-        componentList.add(componentTracker);
-        Log.i("Smart_tracker", "addComponent");
+        filteredList.add(componentTracker);
+        componentFullList.add(componentTracker);
         notifyDataSetChanged();
-        Log.i("Smart_tracker", "addComponent getItemCount="+ componentList.size());
-
+        componentListListener.checkComponentList();
     }
 
     public void updateComponent(ComponentTracker componentTracker) {
-        componentList.set(componentList.indexOf(componentTracker), componentTracker);
+        filteredList.set(filteredList.indexOf(componentTracker), componentTracker);
+        componentFullList.set(componentFullList.indexOf(componentTracker), componentTracker);
         Log.i("Smart_tracker", "updateComponent");
         notifyDataSetChanged();
+        componentListListener.checkComponentList();
     }
 
     public void removeComponent(ComponentTracker message) {
-        componentList.remove(message);
+        filteredList.remove(message);
+        componentFullList.remove(message);
         notifyDataSetChanged();
+        componentListListener.checkComponentList();
     }
 
     public void clear() {
         Log.i("Smart_tracker", "clear");
-        componentList.clear();
+        filteredList.clear();
+        componentFullList.clear();
         notifyDataSetChanged();
-    }
-
-    public void filterComponents(List<ComponentTracker> componentList) {
-        this.componentList = componentList;
-        notifyDataSetChanged();
+        componentListListener.checkComponentList();
     }
 
     public void attachListener(ItemClicklistener itemClicklistener) {
         this.itemClicklistener = itemClicklistener;
+    }
+
+    public void attachComponentListListeener(ComponentListListener componentListListener) {
+        this.componentListListener = componentListListener;
+    }
+
+    @Override
+    public Filter getFilter() {
+        return customFilter;
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener, View.OnClickListener {
@@ -135,5 +147,48 @@ public class ComponentAdapter extends RecyclerView.Adapter<ComponentAdapter.MyVi
             itemClicklistener.onItemClick(v, getAdapterPosition(), true);
             return  true;
         }
+    }
+
+
+    private Filter customFilter = new Filter() {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            List<ComponentTracker> filteredList = new ArrayList<>();
+
+            if (constraint == null || constraint.length() == 0) {
+                filteredList.addAll(componentFullList);
+            } else {
+                String filterPattern = constraint.toString().toLowerCase().trim();
+
+                for (ComponentTracker component : componentFullList) {
+                    if (component.getComponentName().toLowerCase().contains(filterPattern)
+                            || component.getComponentKey().toLowerCase().contains(filterPattern)
+                            || (null != component.getLender() && component.getLender().toLowerCase().contains(filterPattern))
+                            || (null != component.getBorrower() && component.getBorrower().toLowerCase().contains(filterPattern))
+                            || (null != component.getBorrowerTeam() && component.getBorrowerTeam().toLowerCase().contains(filterPattern))
+                            || (null != component.getLenderTeam() && component.getLenderTeam().toLowerCase().contains(filterPattern))
+                    ) {
+                        filteredList.add(component);
+                    }
+                }
+            }
+
+            FilterResults results = new FilterResults();
+            results.values = filteredList;
+
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            filteredList.clear();
+            filteredList.addAll((List) results.values);
+            notifyDataSetChanged();
+            componentListListener.checkComponentList();
+        }
+    };
+
+    public interface ComponentListListener {
+        void checkComponentList();
     }
 }

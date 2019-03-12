@@ -49,8 +49,8 @@ public class FirebaseManager {
         mMessageDatabaseReference.push().setValue(componentTracker);
     }
 
-    public void updateMessage(ComponentTracker ComponentTracker, String newText) {
-        mMessageDatabaseReference.child(ComponentTracker.getComponentKey()).child("text").setValue(newText);
+    public void updateMessage(ComponentTracker componentTracker) {
+        mMessageDatabaseReference.child(componentTracker.getComponentKey()).setValue(componentTracker);
     }
 
     public void attachDatabaseReadListeners(final String componentType) {
@@ -100,8 +100,8 @@ public class FirebaseManager {
     }
 
     private boolean doesComponentTypeExists(String componentType, ComponentTracker comp) {
-        if ((LENDER.equalsIgnoreCase(componentType) && null != comp.getLender() && !comp.getLender().isEmpty())
-                || BORROWER.equalsIgnoreCase(componentType) && null != comp.getBorrower() && !comp.getBorrower().isEmpty())
+        if ((LENDER.equalsIgnoreCase(componentType) && null == comp.getBorrower() )
+                || BORROWER.equalsIgnoreCase(componentType) && null == comp.getLender())
             return true;
         return false;
     }
