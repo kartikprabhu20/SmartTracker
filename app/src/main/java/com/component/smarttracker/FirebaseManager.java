@@ -13,9 +13,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import static com.component.smarttracker.MainActivity.SMART_TRACKER;
+import static com.component.smarttracker.MainActivity.USER_UID;
 import static com.component.smarttracker.OptionsActivity.BORROWER;
 import static com.component.smarttracker.OptionsActivity.FINDER;
 import static com.component.smarttracker.OptionsActivity.LENDER;
+import static com.component.smarttracker.OptionsActivity.MYCOMPONENTS;
 
 public class FirebaseManager {
 
@@ -53,6 +56,11 @@ public class FirebaseManager {
         mMessageDatabaseReference.child(componentTracker.getComponentKey()).setValue(componentTracker);
     }
 
+    public void deleteComponent(ComponentTracker componentTracker) {
+        mMessageDatabaseReference.child(componentTracker.getComponentKey()).removeValue();
+
+    }
+
     public void attachDatabaseReadListeners(final String componentType) {
 
         if (mChildEventListener == null) {
@@ -63,7 +71,9 @@ public class FirebaseManager {
                     comp.setComponentKey(dataSnapshot.getKey());
                     Log.i("smart_tracker","addComponent key:"+ comp.getComponentKey());
 
-                    if (FINDER.equalsIgnoreCase(componentType) || doesComponentTypeExists(componentType,comp))
+                    String userID = mContext.getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_UID, "UNKNOWN");
+                    if (FINDER.equalsIgnoreCase(componentType) || doesComponentTypeExists(componentType,comp)
+                    || (MYCOMPONENTS.equalsIgnoreCase(componentType) && ((null != comp.getLenderID() && comp.getLenderID().equalsIgnoreCase(userID)) || (null != comp.getBorrowerID() && comp.getBorrowerID().equals(userID) ))))
                         mComponentAdapter.addComponent(comp);
                 }
 

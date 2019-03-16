@@ -22,6 +22,7 @@ import java.util.Arrays;
 import static com.component.smarttracker.OptionsActivity.BORROWER;
 import static com.component.smarttracker.OptionsActivity.FINDER;
 import static com.component.smarttracker.OptionsActivity.LENDER;
+import static com.component.smarttracker.OptionsActivity.MYCOMPONENTS;
 import static com.component.smarttracker.OptionsActivity.OPTION_TYPE;
 
  public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -31,11 +32,7 @@ import static com.component.smarttracker.OptionsActivity.OPTION_TYPE;
      public static final String SMART_TRACKER = "smart_tracker";
      public static final String USER_UID = "smart_user_uid";
      public static final String USER_EMAIL = "smart_user_email";
-
-     public static final String COMPONENT_FINDER = "Component Finder";
-     public static final String COMPONENT_BORROWER = "Borrow Components";
-
-     private Button buttonFind, buttonLend, buttonBorrow;
+     private Button buttonFind, buttonLend, buttonBorrow, buttonMyComponents;
 
      private FirebaseAuth mFirebaseAuth;
      private FirebaseAuth.AuthStateListener authStateListener;
@@ -52,9 +49,11 @@ import static com.component.smarttracker.OptionsActivity.OPTION_TYPE;
         buttonFind = findViewById(R.id.button_find);
         buttonLend= findViewById(R.id.button_lend);
         buttonBorrow = findViewById(R.id.button_borrow);
+         buttonMyComponents = findViewById(R.id.button_my_components);
          buttonFind.setOnClickListener(this);
          buttonBorrow.setOnClickListener(this);
          buttonLend.setOnClickListener(this);
+         buttonMyComponents.setOnClickListener(this);
 
 //        FloatingActionButton fab = findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -175,6 +174,9 @@ import static com.component.smarttracker.OptionsActivity.OPTION_TYPE;
                  break;
              case R.id.button_borrow:
                  intent.putExtra(OPTION_TYPE,BORROWER);
+                 break;
+             case R.id.button_my_components:
+                 intent.putExtra(OPTION_TYPE, MYCOMPONENTS);
                  break;
          }
          startActivity(intent);

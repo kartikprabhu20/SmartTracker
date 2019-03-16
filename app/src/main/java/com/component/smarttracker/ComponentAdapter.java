@@ -54,11 +54,11 @@ public class ComponentAdapter extends RecyclerView.Adapter<ComponentAdapter.MyVi
 
             boolean isPhoto = component.getPhotoUrl() != null;
                 holder.componentTitleView.setText(component.getComponentName());
-                holder.imageView.setVisibility(View.VISIBLE);
-                if(isPhoto)
-                    Glide.with(holder.imageView.getContext())
-                        .load(isPhoto? component.getPhotoUrl():R.drawable.fui_ic_twitter_bird_white_24dp)
-                        .into(holder.imageView);
+//                holder.imageView.setVisibility(View.VISIBLE);
+//                if(isPhoto)
+//                    Glide.with(holder.imageView.getContext())
+//                        .load(isPhoto? component.getPhotoUrl():R.drawable.fui_ic_twitter_bird_white_24dp)
+//                        .into(holder.imageView);
 
         }
     }
@@ -130,7 +130,7 @@ public class ComponentAdapter extends RecyclerView.Adapter<ComponentAdapter.MyVi
             Log.i("Smart_tracker", "MyViewHolder");
 
             this.componentTitleView = view.findViewById(R.id.component_title);
-            this.imageView = view.findViewById(R.id.component_image);
+//            this.imageView = view.findViewById(R.id.component_image);
 //            this.noComponentMessage = view.findViewById(R.id.no_component_message);
 
             view.setOnClickListener(this);

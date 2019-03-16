@@ -15,6 +15,10 @@
     <string name="email_id">Email ID</string>
     <string name="team">Team</string>
     <string name="component_name">Component Name</string>
+    <string name="my_components">My Components</string>
+    <string name="delete">Delete</string>
+
+    MyComponent
 
 
 </resources>

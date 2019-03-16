@@ -5,6 +5,8 @@
     <dimen name="unit2">8dp</dimen>
     <dimen name="unit3">12dp</dimen>
     <dimen name="unit4">16dp</dimen>
+    <dimen name="unit5">32dp</dimen>
+
 
     <dimen name="detail_backdrop_height">256dp</dimen>
 

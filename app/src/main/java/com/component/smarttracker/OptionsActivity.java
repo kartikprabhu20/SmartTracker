@@ -13,6 +13,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
@@ -31,25 +32,29 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.component.smarttracker.MainActivity.COMPONENT_BORROWER;
-import static com.component.smarttracker.MainActivity.COMPONENT_FINDER;
 
 public class OptionsActivity extends AppCompatActivity {
 
     public static final String OPTION_TYPE = "option_type";
     public static final String COMPONENT_DETAIL = "component_detail";
+
     public static final String COMPONENT_LENDER = "Lend Components";
-    private static final int RC_PHOTO_PICKER = 5;
+    public static final String COMPONENT_FINDER = "Component Finder";
+    public static final String COMPONENT_BORROWER = "Borrow Components";
+    public static final String MY_COMPONENTS = "My Components";
 
     //Option types
     public static final String LENDER = "lender";
     public static final String BORROWER = "borrower";
     public static final String FINDER = "finder";
-    private static final int REQUEST_CODE = 101;
+    public static final String MYCOMPONENTS = "myComponents";
+
+    private static final int REQUEST_CODE = 233;
+    private static final int RC_PHOTO_PICKER = 5;
+
 
     private FirebaseManager mFirebaseManager;
     public ComponentAdapter mComponentAdapter;
-    private String mUsername;
     private String componentType;
 
     private RecyclerView mRecyclerView;
@@ -58,12 +63,12 @@ public class OptionsActivity extends AppCompatActivity {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.i("smart_tracker","OptionActivity:onCreate : ");
-
         super.onCreate(savedInstanceState);
-        this.setTitle(getTitle(getIntent().getStringExtra(OPTION_TYPE)));
+
+        Intent intent = getIntent();
+        componentType = null != getIntent().getStringExtra(OPTION_TYPE) ? getIntent().getStringExtra(OPTION_TYPE) : FINDER;
+        this.setTitle(getTitle(componentType));
         setContentView(R.layout.activity_component_list);
-        componentType = getIntent().getStringExtra(OPTION_TYPE);
 
         // Initialize references to views
         mRecyclerView = findViewById(R.id.componentListRecyclerView);
@@ -71,7 +76,7 @@ public class OptionsActivity extends AppCompatActivity {
 
         List<ComponentTracker> componentList = new ArrayList<>();
         mComponentAdapter = new ComponentAdapter(this, componentList);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mComponentAdapter);
 
         //Initialize firebase
@@ -84,8 +89,7 @@ public class OptionsActivity extends AppCompatActivity {
 
                 ComponentTracker componentTracker = mComponentAdapter.getComponentList().get(position);
                 if (!isLongClick) {
-                    Intent intent = new Intent();
-                    intent.setClass(OptionsActivity.this, DetailActivity.class);
+                    Intent intent = new Intent(OptionsActivity.this, DetailActivity.class);
                     intent.putExtra(COMPONENT_DETAIL,componentTracker);
                     intent.putExtra(OPTION_TYPE, componentType);
                     startActivityForResult(intent, REQUEST_CODE);
@@ -108,15 +112,22 @@ public class OptionsActivity extends AppCompatActivity {
             }
         });
 
-        FloatingActionButton fab = findViewById(R.id.fab_add_component);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
 
-                promptAlert();
-            }
-        });
+        FloatingActionButton fab = findViewById(R.id.fab_add_component);
+
+        if (componentType.equalsIgnoreCase(LENDER) || componentType.equalsIgnoreCase(BORROWER)) {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    promptAlert();
+                }
+            });
+        }else {
+            fab.setVisibility(View.GONE);
+        }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -160,14 +171,6 @@ public class OptionsActivity extends AppCompatActivity {
                 EditText componentName = layout.findViewById(R.id.alert_component_name);
                 EditText personName = layout.findViewById(R.id.alert_person_name);
                 EditText teamName = layout.findViewById(R.id.alert_team_name);
-                ImageButton imageButton = findViewById(R.id.photo_picker);
-
-//                imageButton.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        launchPhotoPicker();
-//                    }
-//                });
 
                 ComponentTracker tracker = new ComponentTracker(getApplicationContext(),personName.getText().toString(),teamName.getText().toString(), componentType);
                 tracker.setComponentName(componentName.getText().toString());
@@ -217,9 +220,16 @@ public class OptionsActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
-            componentType = data.getStringExtra(OPTION_TYPE);
+
+        if (requestCode == REQUEST_CODE) {
+            if(resultCode == RESULT_OK){
+                componentType = data.getStringExtra(OPTION_TYPE);
+            }
+            if (resultCode == RESULT_CANCELED) {
+                //Write your code if there's no result
+            }
         }
+        mFirebaseManager.attachDatabaseReadListeners(componentType);
     }
 
     private String getTitle(String optionType) {
@@ -230,7 +240,8 @@ public class OptionsActivity extends AppCompatActivity {
                 return COMPONENT_BORROWER;
             case LENDER :
                 return COMPONENT_LENDER;
-
+            case MYCOMPONENTS :
+                return MY_COMPONENTS;
                 default:
                     return FINDER;
         }

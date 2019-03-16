@@ -30,12 +30,13 @@
         </activity>
 
         <activity android:name=".DetailActivity"
-            android:parentActivityName=".OptionsActivity"
             android:configChanges="screenSize|orientation">
 
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.component.smarttracker.OptionsActivity" />
+        <!--android:parentActivityName=".OptionsActivity"-->
+
+            <!--<meta-data-->
+                <!--android:name="android.support.PARENT_ACTIVITY"-->
+                <!--android:value="com.component.smarttracker.OptionsActivity" />-->
         </activity>
     </application>
 

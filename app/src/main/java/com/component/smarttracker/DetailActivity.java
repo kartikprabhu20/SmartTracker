@@ -1,5 +1,6 @@
 package com.component.smarttracker;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -8,6 +9,8 @@ import android.support.design.button.MaterialButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -15,11 +18,14 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.firebase.ui.auth.AuthUI;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.component.smarttracker.MainActivity.SMART_TRACKER;
 import static com.component.smarttracker.MainActivity.USER_EMAIL;
+import static com.component.smarttracker.MainActivity.USER_UID;
 import static com.component.smarttracker.OptionsActivity.COMPONENT_DETAIL;
 import static com.component.smarttracker.OptionsActivity.OPTION_TYPE;
 
@@ -99,6 +105,51 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
+    private void promptAlert(final String text) {
+
+        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("lend".equalsIgnoreCase(text) ? "Enter lender details":"Enter borrower details");
+
+        final LinearLayout layout = (LinearLayout) getLayoutInflater().inflate(R.layout.dialogue_box, null);
+        alert.setView(layout);
+
+        EditText componentName = layout.findViewById(R.id.alert_component_name);
+        componentName.setVisibility(View.GONE);
+        LinearLayout ll =  layout.findViewById(R.id.component_detail_ll);
+        ll.setVisibility(View.GONE);
+
+        alert.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                EditText personName = layout.findViewById(R.id.alert_person_name);
+                EditText teamName = layout.findViewById(R.id.alert_team_name);
+                if ("lend".equalsIgnoreCase(text)) {
+                    component.setLender(personName.getText().toString());
+                    component.setLenderTeam(teamName.getText().toString());
+                    component.setLenderEmail(getApplicationContext().getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_EMAIL, "UNKNOWN"));
+                    component.setLenderID(getApplicationContext().getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_UID, "UNKNOWN"));
+                }else {
+                    component.setBorrower(personName.getText().toString());
+                    component.setBorrowerTeam(teamName.getText().toString());
+                    component.setBorrowerEmail(getApplicationContext().getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_EMAIL, "UNKNOWN"));
+                    component.setBorrowerID(getApplicationContext().getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_UID, "UNKNOWN"));
+                }
+
+                mFirebaseManager.updateMessage(component);
+                onBackPressed();
+            }
+        });
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // what ever you want to do with No option.
+            }
+        });
+
+        this.getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        alert.create();
+        alert.show();
+    }
+
     private void setLenderDetails() {
         lenderName.setText(component.getLender());
         lenderTeam.setText(component.getLenderTeam());
@@ -115,50 +166,47 @@ public class DetailActivity extends AppCompatActivity {
     public void onBackPressed() {
         Intent intent = new Intent();
         intent.putExtra(OPTION_TYPE,componentType);
-
         setResult(RESULT_OK, intent);
+
         finish();
     }
 
-    private void promptAlert(final String text) {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
 
+        //Only owner should be allowed to delete the component
+        if (component.getOwnerID().equalsIgnoreCase(getApplicationContext().getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_UID, "UNKNOWN")) ) {
+            getMenuInflater().inflate(R.menu.menu_delete, menu);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.delete_menu:
+
+                promptDeleteAlert();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void promptDeleteAlert() {
         final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("lend".equalsIgnoreCase(text) ? "Enter lender details":"Enter borrower details");
+        alert.setTitle("Are you sure you want to delete the component records?");
 
-        final LinearLayout layout = (LinearLayout) getLayoutInflater().inflate(R.layout.dialogue_box, null);
-        alert.setView(layout);
-
-        ImageButton imageButton = layout.findViewById(R.id.photo_picker);
-        imageButton.setVisibility(View.GONE);
-        EditText componentName = layout.findViewById(R.id.alert_component_name);
-        componentName.setVisibility(View.GONE);
-
-        alert.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+        alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                EditText personName = layout.findViewById(R.id.alert_person_name);
-                EditText teamName = layout.findViewById(R.id.alert_team_name);
-
-//                imageButton.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        launchPhotoPicker();
-//                    }
-//                });
-
-                if ("lend".equalsIgnoreCase(text)) {
-                    component.setLender(personName.getText().toString());
-                    component.setLenderTeam(teamName.getText().toString());
-                    component.setLenderEmail(getApplicationContext().getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_EMAIL, "UNKNOWN"));
-                }else {
-                    component.setBorrower(personName.getText().toString());
-                    component.setBorrowerTeam(teamName.getText().toString());
-                    component.setBorrowerEmail(getApplicationContext().getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_EMAIL, "UNKNOWN"));
-                }
-
-                mFirebaseManager.updateMessage(component);
+                mFirebaseManager.deleteComponent(component);
+                onBackPressed();
             }
         });
-        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+
+        alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 // what ever you want to do with No option.
             }
@@ -168,5 +216,7 @@ public class DetailActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         alert.create();
         alert.show();
+
     }
+
 }

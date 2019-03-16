@@ -14,7 +14,7 @@ import static com.component.smarttracker.OptionsActivity.LENDER;
 
 public class ComponentTracker implements Parcelable {
     private String componentKey, componentName;
-    private String ownerID;
+    private String ownerID, borrowerID, lenderID;
     private String lender, lenderTeam,lenderEmail, borrower, borrowerTeam, borrowerEmail;
     private String photoUrl;
     private String type;
@@ -44,10 +44,12 @@ public class ComponentTracker implements Parcelable {
             this.lender = owner;
             this.lenderTeam = ownerTeam;
             this.lenderEmail = context.getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_EMAIL, "UNKNOWN");
+            this.lenderID = ownerID;
         }else if (BORROWER.equalsIgnoreCase(componentType)){
             this.borrower = owner;
             this.borrowerTeam = ownerTeam;
             this.borrowerEmail = context.getSharedPreferences(SMART_TRACKER, Context.MODE_PRIVATE).getString(USER_EMAIL, "UNKNOWN");
+            this.borrowerID = ownerID;
         }
 
     }
@@ -195,5 +197,21 @@ public class ComponentTracker implements Parcelable {
 
     public void setBorrowerEmail(String borrowerEmail) {
         this.borrowerEmail = borrowerEmail;
+    }
+
+    public String getBorrowerID() {
+        return borrowerID;
+    }
+
+    public void setBorrowerID(String borrowerID) {
+        this.borrowerID = borrowerID;
+    }
+
+    public String getLenderID() {
+        return lenderID;
+    }
+
+    public void setLenderID(String lenderID) {
+        this.lenderID = lenderID;
     }
 }

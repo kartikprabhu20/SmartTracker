@@ -11,7 +11,8 @@
         android:orientation="horizontal"
         android:weightSum="2"
         android:padding="8dp"
-        android:layout_margin="8dp">
+        android:layout_margin="8dp"
+        android:id="@+id/component_detail_ll">
 
         <TextView
             android:layout_width="match_parent"
@@ -70,13 +71,4 @@
                 android:layout_weight="1"/>
 
         </LinearLayout>
-
-    <ImageButton
-        android:layout_gravity="center_horizontal"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:id="@+id/photo_picker"
-        android:background="@android:drawable/ic_menu_gallery"
-        android:text="Select Component Picture"/>
-
 </LinearLayout>
